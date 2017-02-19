@@ -12,7 +12,7 @@ module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
     UUIDGen = homebridge.hap.uuid;
-    //homebridge.registerAccessory("homebridge-tesla", "Tesla", Thermostat);
+
     homebridge.registerPlatform("homebridge-tesla", "Tesla", TeslaPlatform, false);
 }
 
@@ -32,7 +32,6 @@ TeslaPlatform.prototype.accessories = function (callback) {
     let accessories = [];
 
     if (this.authToken != undefined) {
-        //this.log("Access token: " + this.authToken.access_token);
         var expiresAt = new Date((this.authToken.created_at * 1000) + (this.authToken.expires_in * 1000))
         this.log("Supplied token expires on " + expiresAt);
         if (expiresAt < Date.now())
@@ -46,15 +45,11 @@ TeslaPlatform.prototype.accessories = function (callback) {
 
     tesla.all({ token: accessToken, email: this.username, password: this.password }, function (err, response, body) {
 
-        //this.log("in tesla.all callback body...");
-
         if (err) {
             this.log("Error logging into Tesla: " + err);
             callback(err);
             return;
         }
-
-        //this.log("parsing JSON response body: " + body);
 
         var vehicles = JSON.parse(body).response;
 
@@ -63,7 +58,7 @@ TeslaPlatform.prototype.accessories = function (callback) {
 
             return callback(new Error("No vehicles were found."));
         }
-           
+
         for (var i = 0; i < vehicles.length; i++) {
             var vehicle = vehicles[i];
             var uuid = UUIDGen.generate(vehicle.id_s);
@@ -95,11 +90,6 @@ function Thermostat(log, config, vehicleConfig) {
     // .getCharacteristic(Characteristic.LockTargetState)
     // .on('get', this.getLockState.bind(this))
     // .on('set', this.setLockState.bind(this));
-    //this.climateService = new Service.Switch(this.name);
-    //this.climateService
-    // .getCharacteristic(Characteristic.On)
-    // .on('get', this.getClimateOn.bind(this))
-    // .on('set', this.setClimateOn.bind(this));
     this.temperatureDisplayUnits = Characteristic.TemperatureDisplayUnits.CELSIUS;
     this.currentTemperature = 19;
     this.currentRelativeHumidity = 0.70;
@@ -118,131 +108,20 @@ Thermostat.prototype = {
         this.log("Identify requested!");
         callback(null);
     },
-    getClimateState: function (id, cacheCallback) {
+    getClimateState: function (cacheCallback) {
         memoryCache.wrap("climateState_" + this.vehicleConfig.id_s, function (callback) {
             //this.log("Retrieving current Climate State for vehicle " + id);
 
             tesla.get_climate_state(this.vehicleConfig.id_s, function (state) {
-                //this.log("result from Tesla: " + JSON.stringify(state));
                 callback(state);
             }.bind(this));
         }.bind(this), cacheCallback);
     },
-    //getID: function (cacheCallback) {
-    //    memoryCache.wrap("getID", function (callback) {
-    //        this.log("Logging into Tesla...");
-
-    //        if (this.vehicleID) {
-    //            callback(null, this.vehicleID);
-    //            return;
-    //        }
-
-    //        if (this.authToken != undefined) {
-    //            //this.log("Access token: " + this.authToken.access_token);
-    //            var expiresAt = new Date((this.authToken.created_at * 1000) + (this.authToken.expires_in * 1000))
-    //            this.log("Supplied token expires on " + expiresAt);
-    //            if (expiresAt < Date.now())
-    //                this.authToken = undefined;
-    //        }
-
-    //        var accessToken = undefined;
-    //        if (this.authToken != undefined) {
-    //            accessToken = this.authToken.access_token;
-    //        }
-
-    //        tesla.all({ token: accessToken, email: this.username, password: this.password }, function (err, response, body) {
-
-    //            //this.log("in tesla.all callback body...");
-
-    //            if (err) {
-    //                this.log("Error logging into Tesla: " + err);
-    //                callback(err);
-    //                return;
-    //            }
-
-    //            //this.log("parsing JSON response body: " + body);
-
-    //            var vehicles = JSON.parse(body).response;
-
-    //            for (var i = 0; i < vehicles.length; i++) {
-    //                var vehicle = vehicles[i];
-    //                if (vehicle.vin == this.vin) {
-    //                    callback(null, vehicle.id_s);
-    //                    return;
-    //                }
-    //            }
-
-    //            this.log("No vehicles were found matching the VIN '" + this.vin + "' entered in your config.json. Available vehicles:");
-    //            for (var i = 0; i < vehicles.length; i++) {
-    //                var vehicle = vehicles[i];
-    //                this.log("VIN: " + vehicle.vin + " Name: " + vehicle.display_name);
-    //            }
-    //            callback(new Error("Vehicle with VIN " + this.vin + " not found."));
-    //        }.bind(this));
-    //    }.bind(this), cacheCallback);
-    //},
-    //getID: function (callback) {
-    //    this.log("Logging into Tesla...");
-    //
-    //    if (this.authToken != undefined) {
-    //        this.log("Access token: " + this.authToken.access_token);
-    //        var expiresAt = new Date((this.authToken.created_at * 1000) + (this.authToken.expires_in * 1000))
-    //        this.log("Supplied token expires on " + expiresAt);
-    //        if (expiresAt < Date.now())
-    //            this.authToken = undefined;
-    //    }
-    //
-    //    var accessToken = undefined;
-    //    if (this.authToken != undefined) {
-    //        accessToken = this.authToken.access_token;
-    //    }
-    //
-    //    tesla.all({ token: accessToken, email: this.username, password: this.password }, function (err, response, body) {
-    //
-    //    //tesla.all({ email: this.username, password: this.password }, function (err, response, body) {
-    //        if (err) {
-    //            this.log("Error logging into Tesla: " + err);
-    //            callback(err);
-    //            return;
-    //        }
-    //        var vehicles = JSON.parse(body).response;
-    //        for (var i = 0; i < vehicles.length; i++) {
-    //            var vehicle = vehicles[i];
-    //            if (vehicle.vin == this.vin) {
-    //                callback(null, vehicle.id_s);
-    //                return;
-    //            }
-    //        }
-    //        this.log("No vehicles were found matching the VIN '" + this.vin + "' entered in your config.json. Available vehicles:");
-    //        for (var i = 0; i < vehicles.length; i++) {
-    //            var vehicle = vehicles[i];
-    //            this.log("VIN: " + vehicle.vin + " Name: " + vehicle.display_name);
-    //        }
-    //        callback(new Error("Vehicle with VIN " + this.vin + " not found."));
-    //
-    //    }.bind(this));
-    //},
-    // Required
     getCurrentHeatingCoolingState: function (callback) {
-        //this.log("getCurrentHeatingCoolingState ENTERED");
-
-        //this.getID(function (err, id) {
-        //    if (err) {
-        //        //this.log("getCurrentHeatingCoolingState ERROR " + err);
-        //        callback(err);
-        //        return
-        //    }
-
-            //this.log("getCurrentHeatingCoolingState tesla.get_climate_state")
-            this.getClimateState(this.vehicleID, function (state) {
-                //this.log("getCurrentHeatingCoolingState INSIDE - state " + state);
+            this.getClimateState(function (state) {
 
                 if (state) {
-                    //this.log("getCurrentHeatingCoolingState INSIDE - state " + JSON.stringify(state));
-                    //if (state.is_auto_conditioning_on != undefined && state.is_auto_conditioning_on == true)
-                    //    this.log("autoconditioning IS UNDEFINED");
-
-                    if (state.is_climate_on)
+                    if (state.is_climate_on == true)
                         this.currentHeatingCoolingState = Characteristic.CurrentHeatingCoolingState.HEAT;
                     else
                         this.currentHeatingCoolingState = Characteristic.CurrentHeatingCoolingState.OFF;
@@ -253,39 +132,25 @@ Thermostat.prototype = {
                     this.currentHeatingCoolingState = Characteristic.CurrentHeatingCoolingState.OFF;
                 }
 
-                //this.log("getCurrentHeatingCoolingState RETURNING " + this.currentHeatingCoolingState);
                 callback(null, this.currentHeatingCoolingState);
             }.bind(this));
-        //}.bind(this));
     },
     getTargetHeatingCoolingState: function (callback) {
-        //this.log("getTargetHeatingCoolingState ENTERED");
-
-        //this.getID(function (err, id) {
-        //    if (err) {
-        //        //this.log("getTargetHeatingCoolingState ERROR " + err);
-
-        //        callback(err);
-        //        return
-        //    }
-
-            this.getClimateState(this.vehicleID, function (state) {
+            this.getClimateState(function (state) {
                 if (state.is_climate_on == true)
                     this.targetHeatingCoolingState = Characteristic.TargetHeatingCoolingState.AUTO;
                 else
                     this.targetHeatingCoolingState = Characteristic.TargetHeatingCoolingState.OFF;
 
-                //this.log("getTargetHeatingCoolingState RETURNING " + this.targetHeatingCoolingState);
                 callback(null, this.targetHeatingCoolingState);
             }.bind(this));
-        //}.bind(this));
     },
     setTargetHeatingCoolingState: function (value, callback) {
         if (value === undefined) {
-            callback(); //Some stuff call this without value doing shit with the rest
+            callback();
             return;
         }
-        //this.getID(function (err, id) {
+
             var climateState;
             switch (value) {
                 case Characteristic.TargetHeatingCoolingState.HEAT:
@@ -299,7 +164,6 @@ Thermostat.prototype = {
             }
             tesla.auto_conditioning({ id: this.vehicleID, climate: climateState }, function (response) {
                 if (response.result == true) {
-                    //this.log("Car climate control is now " + climateState);
 
                     this.targetHeatingCoolingState = value;
 
@@ -310,16 +174,9 @@ Thermostat.prototype = {
                     callback(new Error("Error setting climate state."));
                 }
             }.bind(this));
-        //}.bind(this));
     },
     getCurrentTemperature: function (callback) {
-        //this.getID(function (err, id) {
-        //    if (err) {
-        //        callback(err);
-        //        return
-        //    }
-
-            this.getClimateState(this.vehicleID, function (state) {
+            this.getClimateState(function (state) {
                 if (state.inside_temp != undefined)
                     this.currentTemperature = state.inside_temp;
                 else
@@ -327,31 +184,15 @@ Thermostat.prototype = {
 
                 callback(null, this.currentTemperature);
             }.bind(this));
-        //}.bind(this));
     },
     getTargetTemperature: function (callback) {
-        //this.getID(function (err, id) {
-        //    if (err) {
-        //        callback(err);
-        //        return
-        //    }
-
-            this.getClimateState(this.vehicleID, function (state) {
+            this.getClimateState(function (state) {
                 this.targetTemperature = state.driver_temp_setting;
 
                 callback(null, this.targetTemperature);
             }.bind(this));
-        //}.bind(this));
     },
     setTargetTemperature: function (value, callback) {
-        //this.log("Setting target temperature...");
-
-        //this.getID(function (err, vid) {
-        //    if (err) {
-        //        callback(err);
-        //        return
-        //    }
-
             tesla.set_temperature({ id: this.vehicleID, dtemp: value }, function (state) {
                 this.log(state);
 
@@ -359,7 +200,6 @@ Thermostat.prototype = {
 
                 callback(null, this.targetTemperature);
             }.bind(this));
-        //}.bind(this));
     },
     getTemperatureDisplayUnits: function (callback) {
         //this.log("getTemperatureDisplayUnits:", this.temperatureDisplayUnits);
@@ -369,23 +209,6 @@ Thermostat.prototype = {
     setTemperatureDisplayUnits: function (value, callback) {
         //this.log("setTemperatureDisplayUnits from %s to %s", this.temperatureDisplayUnits, value);
         this.temperatureDisplayUnits = value;
-        var error = null;
-        callback(error);
-    },
-    // Optional
-    getCurrentRelativeHumidity: function (callback) {
-        //this.log("getCurrentRelativeHumidity not implemented");
-        this.currentRelativeHumidity = this.targetRelativeHumidity;
-        callback(null, this.currentRelativeHumidity);
-    },
-    getTargetRelativeHumidity: function (callback) {
-        //this.log("getTargetRelativeHumidity:", this.targetRelativeHumidity);
-        var error = null;
-        callback(error, this.targetRelativeHumidity);
-    },
-    setTargetRelativeHumidity: function (value, callback) {
-        //this.log("setTargetRelativeHumidity from/to :", this.targetRelativeHumidity, value);
-        this.targetRelativeHumidity = value;
         var error = null;
         callback(error);
     },
@@ -404,7 +227,7 @@ Thermostat.prototype = {
         // the default values for things like serial number, model, etc.
         var informationService = new Service.AccessoryInformation();
         informationService
-            .setCharacteristic(Characteristic.Manufacturer, "Tesla Thermostat")
+            .setCharacteristic(Characteristic.Manufacturer, "Tesla Climate Control")
             .setCharacteristic(Characteristic.Model, "Tesla")
             .setCharacteristic(Characteristic.SerialNumber, "NA");
         // Required Characteristics
@@ -426,19 +249,6 @@ Thermostat.prototype = {
             .getCharacteristic(Characteristic.TemperatureDisplayUnits)
             .on('get', this.getTemperatureDisplayUnits.bind(this))
             .on('set', this.setTemperatureDisplayUnits.bind(this));
-        // Optional Characteristics
-        //this.service
-        //    .getCharacteristic(Characteristic.CurrentRelativeHumidity)
-        //    .on('get', this.getCurrentRelativeHumidity.bind(this));
-        //this.service
-        //    .getCharacteristic(Characteristic.TargetRelativeHumidity)
-        //    .on('get', this.getTargetRelativeHumidity.bind(this))
-        //    .on('set', this.setTargetRelativeHumidity.bind(this));
-        /*
-        this.service
-            .getCharacteristic(Characteristic.CoolingThresholdTemperature)
-            .on('get', this.getCoolingThresholdTemperature.bind(this));
-        */
         this.service
             .getCharacteristic(Characteristic.HeatingThresholdTemperature)
             .on('get', this.getHeatingThresholdTemperature.bind(this));

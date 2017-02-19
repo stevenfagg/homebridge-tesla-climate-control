@@ -1,0 +1,24 @@
+{
+  "name": "homebridge-tesla-climate-control",
+  "version": "0.1.0",
+  "description": "Tesla Climate Control for Homebridge: https://github.com/nfarina/homebridge",
+  "license": "ISC",
+  "keywords": [
+    "homebridge-plugin", "tesla climate control"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stevenfagg/homebridge-tesla-climate-control.git"
+  },
+  "bugs": {
+    "url": "http://github.com/stevenfagg/homebridge-tesla-climate-control/issues"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "teslams": "^1.1.6",
+    "cache-manager": ">=2.4.0",
+  }
+}

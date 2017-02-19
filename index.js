@@ -13,7 +13,7 @@ module.exports = function (homebridge) {
     Characteristic = homebridge.hap.Characteristic;
     UUIDGen = homebridge.hap.uuid;
 
-    homebridge.registerPlatform("homebridge-tesla", "Tesla", TeslaPlatform, false);
+    homebridge.registerPlatform("homebridge-tesla-climate-control", "Tesla", TeslaPlatform, false);
 }
 
 function TeslaPlatform(log, config, api) {

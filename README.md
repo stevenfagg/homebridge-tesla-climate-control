@@ -4,8 +4,9 @@
 Example config.json:
 
     {
-      "platform": [
+      "platforms": [
         {
+          "platform": "Tesla",
           "name": "Tesla Climate Control",
           "username": "tesla@myteslaaccount",
           "password": "myteslaaccountpassword"

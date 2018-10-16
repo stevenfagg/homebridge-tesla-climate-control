@@ -18,7 +18,7 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "teslams": "^1.1.6",
+    "teslams": "github:hjespers/teslams#9ca38c5cd033689e55897f80e2cd506ec6bb91ac",
     "cache-manager": ">=2.4.0",
   }
 }
